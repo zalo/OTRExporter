@@ -138,6 +138,7 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/../../ZAPDTR/ZAPD/
+	${CMAKE_CURRENT_SOURCE_DIR}/../../ZAPDTR/lib/tinyxml2/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libultraship/include
     # TODO: these should no longer be necessary if we were to link against LUS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libultraship
@@ -148,19 +149,32 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 	.
 )
 
-find_package(nlohmann_json REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
+if(BUILD_FOR_WEB)
+    # On Emscripten, these are already provided by libultraship via FetchContent
+    find_package(nlohmann_json QUIET)
+    if(nlohmann_json_FOUND)
+        target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
+    endif()
+    find_package(spdlog QUIET)
+    if(spdlog_FOUND)
+        target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
+    endif()
+else()
+    find_package(nlohmann_json REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
+    find_package(spdlog REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
+endif()
 
-find_package(spdlog REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
-
-FetchContent_Declare(
-    StormLib
-    GIT_REPOSITORY https://github.com/ladislav-zezula/StormLib.git
-    GIT_TAG v9.25
-)
-FetchContent_MakeAvailable(StormLib)
-target_include_directories(${PROJECT_NAME} PRIVATE ${stormlib_SOURCE_DIR}/src)
+if(NOT BUILD_FOR_WEB)
+    FetchContent_Declare(
+        StormLib
+        GIT_REPOSITORY https://github.com/ladislav-zezula/StormLib.git
+        GIT_TAG v9.25
+    )
+    FetchContent_MakeAvailable(StormLib)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${stormlib_SOURCE_DIR}/src)
+endif()
 
 if(MSVC)
     target_compile_options(${PROJECT_NAME} PRIVATE
