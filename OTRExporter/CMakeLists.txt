@@ -138,7 +138,6 @@ endif()
 
 target_include_directories(${PROJECT_NAME} PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}/../../ZAPDTR/ZAPD/
-	${CMAKE_CURRENT_SOURCE_DIR}/../../ZAPDTR/lib/tinyxml2/
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libultraship/include
     # TODO: these should no longer be necessary if we were to link against LUS
     ${CMAKE_CURRENT_SOURCE_DIR}/../../libultraship
@@ -162,7 +161,15 @@ if(BUILD_FOR_WEB)
     if(DEFINED libzip_SOURCE_DIR)
         target_include_directories(${PROJECT_NAME} PRIVATE ${libzip_SOURCE_DIR}/lib ${libzip_BINARY_DIR})
     endif()
+    # Link tinyxml2 from FetchContent (v10) instead of using ZAPDTR's bundled v7
+    if(TARGET tinyxml2)
+        target_link_libraries(${PROJECT_NAME} PUBLIC tinyxml2)
+    endif()
 else()
+    # Use ZAPDTR's bundled tinyxml2 for non-web builds
+    target_include_directories(${PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../ZAPDTR/lib/tinyxml2/
+    )
     find_package(nlohmann_json REQUIRED)
     target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
     find_package(spdlog REQUIRED)
