@@ -150,13 +150,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 if(BUILD_FOR_WEB)
-    # On Emscripten, these are already provided by libultraship via FetchContent
-    find_package(nlohmann_json QUIET)
-    if(nlohmann_json_FOUND)
+    # On Emscripten, these are provided by libultraship via FetchContent
+    # The targets exist but find_package can't discover them, so check directly
+    if(TARGET nlohmann_json::nlohmann_json)
         target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json)
     endif()
-    find_package(spdlog QUIET)
-    if(spdlog_FOUND)
+    if(TARGET spdlog::spdlog)
         target_link_libraries(${PROJECT_NAME} PUBLIC spdlog::spdlog)
     endif()
 else()
